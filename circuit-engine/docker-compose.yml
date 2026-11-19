@@ -1,0 +1,17 @@
+services:
+  db:
+    image: postgres:16
+    environment: { POSTGRES_USER: circuit, POSTGRES_PASSWORD: circuit, POSTGRES_DB: circuit }
+    healthcheck: { test: ["CMD-SHELL", "pg_isready -U circuit"], interval: 3s, retries: 20 }
+    volumes: [dbdata:/var/lib/postgresql/data]
+  backend:
+    build: ./backend
+    env_file: .env
+    environment: { DATABASE_URL: "postgresql+psycopg2://circuit:circuit@db:5432/circuit" }
+    depends_on: { db: { condition: service_healthy } }
+    ports: ["8000:8000"]
+  frontend:
+    build: ./frontend
+    depends_on: [backend]
+    ports: ["3000:3000"]
+volumes: { dbdata: {} }
